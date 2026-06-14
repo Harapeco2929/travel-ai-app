@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>保存済み旅行プラン</title>
+
+    <style>
+        :root {
+            --bg-color: #fff7f8;
+            --main-color: #ff8fa3;
+            --border-color: #ffd6dc;
+            --soft-color: #ffe1e7;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--bg-color);
+            margin: 0;
+        }
+
+        .page {
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin: 40px 0 25px;
+        }
+
+        .plan-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .title {
+            font-size: 19px;
+            font-weight: bold;
+            color: var(--main-color);
+        }
+
+        .info {
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .date {
+            color: gray;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: var(--main-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+        }
+
+        .detail-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--main-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .menu {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+        }
+
+        .menu-btn {
+            background: var(--main-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            width: 180px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .menu-content a {
+            display: block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .menu-content a:hover {
+            background: var(--soft-color);
+        }
+
+        .menu-profile {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+
+        .menu-profile-img {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--main-color);
+        }
+
+        .menu-profile-img.empty {
+            background: var(--soft-color);
+            display: inline-block;
+        }
+
+        .menu-name {
+            margin-top: 6px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="menu">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+    <div class="menu-content" id="menuContent">
+        <div class="menu-profile">
+            {% if profile and profile["image_path"] %}
+                <img src="{{ url_for('uploaded_file', filename=profile['image_path']) }}" class="menu-profile-img">
+            {% else %}
+                <div class="menu-profile-img empty"></div>
+            {% endif %}
+
+            <div class="menu-name">
+                {{ profile["nickname"] if profile else "ゲスト" }}
+            </div>
+        </div>
+
+        <a href="/">AI旅行プランナー</a>
+        <a href="/profile">プロフィール</a>
+        <a href="/saved">保存済みプラン</a>
+    </div>
+</div>
+
+<div class="page">
+
+    <a href="/" class="back-btn">← AI旅行プランナーへ戻る</a>
+
+    <h1>保存済み旅行プラン</h1>
+
+    {% if plans %}
+
+        {% for plan in plans %}
+
+            <div class="plan-card">
+
+                <div class="title">
+                    {{ plan["destination"] }}
+                </div>
+
+                <div class="info">
+                    <strong>予算:</strong>
+                    {{ plan["budget"] }}
+                </div>
+
+                <div class="info">
+                    {{ plan["summary"] }}
+                </div>
+
+                <div class="date">
+                    保存日: {{ plan["created_at"] }}
+                </div>
+
+                <a href="/saved/{{ plan['id'] }}" class="detail-btn">
+                    詳細を見る
+                </a>
+
+                <form action="/delete/{{ plan['id'] }}" method="POST" style="display:inline;">
+                    <button type="submit" class="delete-btn">
+                        🗑 削除
+                    </button>
+                </form>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>まだ保存された旅行プランはありません。</p>
+
+    {% endif %}
+
+</div>
+
+<script>
+function toggleMenu() {
+    const menu = document.getElementById("menuContent");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+</script>
+
+<script>
+function setTheme(theme){
+    localStorage.setItem("theme", theme);
+    applyTheme(theme);
+}
+
+function applyTheme(theme){
+    if(theme === "pink"){
+        document.documentElement.style.setProperty("--bg-color","#fff7f8");
+        document.documentElement.style.setProperty("--main-color","#ff8fa3");
+        document.documentElement.style.setProperty("--border-color","#ffd6dc");
+        document.documentElement.style.setProperty("--soft-color","#ffe1e7");
+    }
+
+    if(theme === "blue"){
+        document.documentElement.style.setProperty("--bg-color","#f0f9ff");
+        document.documentElement.style.setProperty("--main-color","#60a5fa");
+        document.documentElement.style.setProperty("--border-color","#bfdbfe");
+        document.documentElement.style.setProperty("--soft-color","#dbeafe");
+    }
+
+    if(theme === "yellow"){
+        document.documentElement.style.setProperty("--bg-color","#fffbea");
+        document.documentElement.style.setProperty("--main-color","#facc15");
+        document.documentElement.style.setProperty("--border-color","#fde68a");
+        document.documentElement.style.setProperty("--soft-color","#fef3c7");
+    }
+}
+
+window.onload = function(){
+    const savedTheme = localStorage.getItem("theme") || "pink";
+    applyTheme(savedTheme);
+}
+</script>
+
+</body>
+</html>

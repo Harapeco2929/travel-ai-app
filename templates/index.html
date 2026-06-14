@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AI旅行プランナー</title>
+
+    <style>
+        .menu-profile {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 8px;
+}
+
+.menu-profile-img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--main-color);
+}
+
+.menu-profile-img.empty {
+    background: var(--soft-color);
+    display: inline-block;
+}
+
+.menu-name {
+    margin-top: 6px;
+    font-weight: bold;
+    color: #333;
+}
+        :root {
+                  --bg-color: var(--bg-color);
+                  --main-color: var(--main-color);
+                  --border-color: var(--border-color);
+                  --soft-color: var(--soft-color);
+        }
+
+        .menu {
+              position: fixed;
+              top: 15px;
+              right: 15px;
+              z-index: 1000;
+       }
+
+        .menu-btn {
+              background: var(--main-color);
+              color: white;
+              border: none;
+              border-radius: 50%;
+              width: 45px;
+              height: 45px;
+              font-size: 22px;
+              cursor: pointer;
+        }
+
+            .menu-content {
+               display: none;
+               position: absolute;
+               right: 0;
+               margin-top: 8px;
+               background: white;
+               border: 1px solid #ffd6dc;
+               border-radius: 12px;
+               padding: 10px;
+               width: 170px;
+               box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .menu-content a {
+               display: block;
+               padding: 10px;
+               color: #333;
+               text-decoration: none;
+               border-radius: 8px;
+        }
+
+        .menu-content a:hover {
+             background:var(--soft-color);
+        }
+        :root {
+            --bg-color: var(--bg-color);
+            --main-color: var(--main-color);
+            --border-color: #ffd6dc;
+            --soft-color: var(--soft-color);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg-color);
+        }
+
+        .theme-buttons {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .theme-btn {
+            color: #333;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 12px;
+            margin: 4px;
+            cursor: pointer;
+        }
+
+        .phone {
+            width: 390px;
+            margin: 20px auto;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        h2 {
+            font-size: 18px;
+            border-left: 5px solid var(--main-color);
+            padding-left: 8px;
+        }
+
+        .box {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        button {
+            background: var(--main-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        input, select {
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            margin: 5px 0;
+            width: 90%;
+        }
+
+        .spot-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .spot-name {
+            font-weight: bold;
+            color: var(--main-color);
+            font-size: 17px;
+        }
+
+        .map-frame {
+            width: 100%;
+            height: 250px;
+            border: 0;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .ai {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 12px;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .user {
+            background: var(--soft-color);
+            padding: 10px;
+            border-radius: 12px;
+            margin: 8px 0;
+            text-align: right;
+            line-height: 1.6;
+        }
+
+        .day {
+            background: var(--soft-color);
+            border-radius: 10px;
+            padding: 8px;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .schedule-item {
+            display: flex;
+            gap: 10px;
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        .time {
+            font-weight: bold;
+            color: var(--main-color);
+            width: 60px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="menu">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+    <div class="menu-content" id="menuContent">
+
+        <div class="menu-profile">
+            {% if profile and profile["image_path"] %}
+                <img src="{{ url_for('uploaded_file', filename=profile['image_path']) }}" class="menu-profile-img">
+            {% else %}
+                <div class="menu-profile-img empty"></div>
+            {% endif %}
+
+            <div class="menu-name">
+                {{ profile["nickname"] if profile else "ゲスト" }}
+            </div>
+        </div>
+
+        <a href="/">AI旅行プランナー</a>
+        <a href="/profile">プロフィール</a>
+        <a href="/saved">保存済みプラン</a>
+    </div>
+</div>
+</div>
+
+<div class="theme-buttons">
+    <button type="button" onclick="setTheme('pink')" class="theme-btn">🌸 Sakura Pink</button>
+    <button type="button" onclick="setTheme('blue')" class="theme-btn">🩵 Ocean Blue</button>
+    <button type="button" onclick="setTheme('yellow')" class="theme-btn">💛 Sunshine Yellow</button>
+</div>
+
+<div class="phone">
+
+    <h1>AI旅行プランナー</h1>
+
+    <div class="box">
+        <h2>旅行写真をアップロード</h2>
+        <form method="POST" enctype="multipart/form-data" action="#result">
+            <input type="file" name="image" required>
+            <br>
+            <button type="submit">分析する</button>
+        </form>
+    </div>
+
+    {% if prediction %}
+
+    <div class="box" id="result">
+        <h2>分類結果</h2>
+        <p><strong>{{ prediction }}</strong></p>
+        <p>自信度：{{ confidence }}%</p>
+    </div>
+
+    <div class="box" id="spots">
+        <h2>おすすめ観光地</h2>
+<div class="ai">
+💡表示されていない旅行先でも大丈夫です。<br>
+下のチャット欄から自由に希望を入力してください。<br>
+例：韓国、台湾、ディズニー、ユニバ、温泉旅行、海鮮を食べたい
+</div>
+        {% for spot in tourist_spots %}
+            <div class="spot-card">
+                <div class="spot-name">{{ spot.name }}</div>
+                <p>{{ spot.area }}</p>
+                <p>{{ spot.description }}</p>
+
+                <form method="POST" action="#spots">
+                    <input type="hidden" name="spot_name" value="{{ spot.name }}">
+                    <button type="submit">地図を見る</button>
+                </form>
+            </div>
+        {% endfor %}
+
+        {% if selected_spot %}
+            <h2>{{ selected_spot.name }} の地図</h2>
+            <iframe class="map-frame" src="{{ selected_spot.map }}"></iframe>
+        {% endif %}
+    </div>
+
+    <div class="box" id="conditions">
+        <h2>旅行条件を入力</h2>
+
+        <form method="POST" action="#chat">
+            <p>出発日</p>
+            <input type="date" name="start_date" required>
+
+            <p>出発地</p>
+            <input type="text" name="departure" placeholder="例：横浜" required>
+
+            <p>予算</p>
+            <select name="budget" required>
+                <option value="1万円以下">1万円以下</option>
+                <option value="1〜3万円">1〜3万円</option>
+                <option value="3〜5万円">3〜5万円</option>
+                <option value="5万円以上">5万円以上</option>
+            </select>
+
+            <p>旅行日数</p>
+            <select name="days" required>
+                <option value="日帰り">日帰り</option>
+                <option value="1泊2日">1泊2日</option>
+                <option value="2泊3日">2泊3日</option>
+                <option value="3泊4日">3泊4日</option>
+            </select>
+
+            <p>同行者</p>
+            <select name="companion" required>
+                <option value="一人">一人</option>
+                <option value="友達">友達</option>
+                <option value="恋人">恋人</option>
+                <option value="家族">家族</option>
+            </select>
+
+            <p>移動手段</p>
+            <select name="transport" required>
+                <option value="電車">電車</option>
+                <option value="車">車</option>
+                <option value="飛行機">飛行機</option>
+            </select>
+
+            <p>重視したいこと</p>
+            <select name="priority" required>
+                <option value="費用を抑えたい">費用を抑えたい</option>
+                <option value="観光をたくさんしたい">観光をたくさんしたい</option>
+                <option value="ゆっくり過ごしたい">ゆっくり過ごしたい</option>
+                <option value="写真映えを重視したい">写真映えを重視したい</option>
+                <option value="グルメを楽しみたい">グルメを楽しみたい</option>
+            </select>
+
+            <br>
+            <button type="submit">条件を保存</button>
+        </form>
+    </div>
+
+    <div class="box" id="chat">
+        <h2>追加希望</h2>
+
+        {% for chat in chat_history %}
+            {% if chat.role == "user" %}
+                <div class="user">あなた：{{ chat.message }}</div>
+            {% else %}
+                <div class="ai">AI：{{ chat.message }}</div>
+            {% endif %}
+        {% endfor %}
+
+        <form method="POST" action="#chat">
+            <input type="text" name="user_message" placeholder="例：温泉も入れたい">
+            <button type="submit">追加</button>
+        </form>
+
+        {% if conditions %}
+        <form method="POST" action="#final">
+            <input type="hidden" name="create_final" value="1">
+            <button type="submit">最終スケジュール作成</button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if final_schedule %}
+
+    <div class="box" id="final">
+        <h2>最終スケジュール</h2>
+
+        <p><strong>おすすめ目的地：</strong>{{ final_schedule.destination }}</p>
+        <p><strong>予算目安：</strong>{{ final_schedule.budget }}</p>
+        <p>{{ final_schedule.summary }}</p>
+
+        {% for day in final_schedule.days %}
+            <div class="day">{{ day.date }}</div>
+
+           {% for item in day["items"] %}
+                <div class="schedule-item">
+                    <div class="time">{{ item.time }}</div>
+                    <div>{{ item.text }}</div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
+    {% endif %}
+<form method="POST" action="#final">
+    <input type="hidden" name="save_plan" value="1">
+    <button type="submit">このプランを保存</button>
+
+</form>
+</div>
+
+<script>
+function setTheme(theme){
+
+    localStorage.setItem("theme", theme);
+
+    applyTheme(theme);
+}
+
+function applyTheme(theme){
+
+    if(theme === "pink"){
+        document.documentElement.style.setProperty("--bg-color","#fff7f8");
+        document.documentElement.style.setProperty("--main-color","#ff8fa3");
+        document.documentElement.style.setProperty("--border-color","#ffd6dc");
+        document.documentElement.style.setProperty("--soft-color","#ffe1e7");
+    }
+
+    if(theme === "blue"){
+        document.documentElement.style.setProperty("--bg-color","#f0f9ff");
+        document.documentElement.style.setProperty("--main-color","#60a5fa");
+        document.documentElement.style.setProperty("--border-color","#bfdbfe");
+        document.documentElement.style.setProperty("--soft-color","#dbeafe");
+    }
+
+    if(theme === "yellow"){
+        document.documentElement.style.setProperty("--bg-color","#fffbea");
+        document.documentElement.style.setProperty("--main-color","#facc15");
+        document.documentElement.style.setProperty("--border-color","#fde68a");
+        document.documentElement.style.setProperty("--soft-color","#fef3c7");
+    }
+}
+
+window.onload = function(){
+
+    const savedTheme =
+        localStorage.getItem("theme") || "pink";
+
+    applyTheme(savedTheme);
+}
+
+window.onload = function() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
+}
+</script>
+
+<script>
+function toggleMenu() {
+    const menu = document.getElementById("menuContent");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+</script>
+
+<script>
+function setTheme(theme){
+    localStorage.setItem("theme", theme);
+    applyTheme(theme);
+}
+
+function applyTheme(theme){
+    if(theme === "pink"){
+        document.documentElement.style.setProperty("--bg-color","#fff7f8");
+        document.documentElement.style.setProperty("--main-color","#ff8fa3");
+        document.documentElement.style.setProperty("--border-color","#ffd6dc");
+        document.documentElement.style.setProperty("--soft-color","#ffe1e7");
+    }
+
+    if(theme === "blue"){
+        document.documentElement.style.setProperty("--bg-color","#f0f9ff");
+        document.documentElement.style.setProperty("--main-color","#60a5fa");
+        document.documentElement.style.setProperty("--border-color","#bfdbfe");
+        document.documentElement.style.setProperty("--soft-color","#dbeafe");
+    }
+
+    if(theme === "yellow"){
+        document.documentElement.style.setProperty("--bg-color","#fffbea");
+        document.documentElement.style.setProperty("--main-color","#facc15");
+        document.documentElement.style.setProperty("--border-color","#fde68a");
+        document.documentElement.style.setProperty("--soft-color","#fef3c7");
+    }
+}
+
+window.onload = function(){
+    const savedTheme = localStorage.getItem("theme") || "pink";
+    applyTheme(savedTheme);
+}
+</script>
+
+</body>
+</html>
